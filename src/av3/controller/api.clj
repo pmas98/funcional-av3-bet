@@ -44,20 +44,20 @@
        :body (json/generate-string (db/depositar (Integer. valor)))}))
 
 (POST "/apostas/registrar" {:keys [body]}
-  (let [{:keys [id bookmaker market outcome multiplier valor sport]} body]  ;; Incluindo sport
-    (if (and id bookmaker market outcome multiplier valor sport)  ;; Validando todos os campos, incluindo sport
-      (let [result (db/registrar-aposta id bookmaker market multiplier outcome (Integer. valor) sport)]  ;; Passando sport para a função
+  (let [{:keys [id bookmaker market outcome multiplier valor sport]} body]
+    (if (and id bookmaker market outcome multiplier valor sport)
+      (let [result (db/registrar-aposta id bookmaker market multiplier outcome (Integer. valor) sport)]
         {:status (if (= "registrada" (:status result)) 200 400)
          :body (json/generate-string result)})
       {:status 400
-       :body {:error "All fields (id, bookmaker, market, outcome, multiplier, valor, sport) are required"}})))  ;; Atualizando a mensagem de erro
+       :body {:error "All fields (id, bookmaker, market, outcome, multiplier, valor, sport) are required"}})))
 
 
   (GET "/apostas" []
-    (let [all-apostas @db/apostas  ;; Obtém todas as apostas do atom
+    (let [all-apostas @db/apostas
           formatted-apostas (map (fn [[id aposta]]
                                    (assoc aposta :id id))
-                                 all-apostas)]  ;; Adiciona o ID a cada aposta
+                                 all-apostas)]
       {:status 200
        :body (json/generate-string formatted-apostas)}))
 
