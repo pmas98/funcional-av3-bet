@@ -43,11 +43,12 @@
 
 (defn fetch-event-data [market]
   (let [url (str "https://api.the-odds-api.com/v4/sports/" market "/odds")]
+    (log/info "Fetching events for market:" url)
     (try
       (http/get url
                 {:query-params {"apiKey" "083e159eb384001b00ba52c8fd8f4513"
                                 "regions" "us"
-                                "markets" ["h2h" "totals"]}
+                                "markets" "h2h,totals"} ; Use a comma-separated string
                  :as :json
                  :throw-exceptions false})
       (catch Exception e

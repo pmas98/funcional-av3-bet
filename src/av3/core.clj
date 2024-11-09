@@ -3,4 +3,4 @@
             [av3.controller.api :refer [app]]))
 
 (defn -main []
-  (run-jetty app {:port 3000 :join? false}))
+  (run-jetty app {:port 8000 :join? false}))

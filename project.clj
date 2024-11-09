@@ -8,6 +8,7 @@
                  [compojure "1.6.2"]               ; roteamento para a API
                  [cheshire "5.10.0"]               ; manipulação de JSON
                  [ring/ring-json "0.5.0"]          ; middleware JSON
+                 [ring-cors "0.1.13"]
                  [org.clojure/core.async "1.3.610"] ; processamento assíncrono
                  [clj-http "3.12.3"]
                  [environ "1.2.0"]
