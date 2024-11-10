@@ -9,7 +9,6 @@
             [av3.service.sports-service :as sports]
             [clojure.tools.logging :as log]))
 
-;; Define CORS settings separately for clarity
 (def cors-config
   {:access-control-allow-origin [#"http://127.0.0.1:3000" #"http://localhost:3000"]
    :access-control-allow-methods [:get :post :put :delete :options]
@@ -18,7 +17,6 @@
    :access-control-allow-credentials "true"
    :access-control-max-age "3600"})
 
-;; Add OPTIONS route handler for preflight requests
 (defn options-handler [_]
   {:status 200
    :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
@@ -29,7 +27,6 @@
    :body ""})
 
 (defroutes app-routes
-  ;; Add OPTIONS route for all endpoints
   (OPTIONS "/*" [] (options-handler nil))
 
   (GET "/health" []
@@ -59,7 +56,6 @@
                body
                {:error body})}))
 
-  ;; Rest of your routes remain the same
   (GET "/saldo" []
     {:status 200
      :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"

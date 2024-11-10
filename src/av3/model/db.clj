@@ -57,7 +57,7 @@
     (cond
       (> home-score away-score) :home
       (< home-score away-score) :away
-      :else nil))) ;; nil for draw
+      :else nil)))
 
 (defn liquidar-aposta [id-aposta]
   (let [aposta (get @apostas id-aposta)]
@@ -73,7 +73,6 @@
               outcome (:outcome aposta)]
 
           (cond
-            ;; Check if outcome matches the winning team
             (= winning-team outcome)
             (do
               (swap! apostas update id-aposta assoc :status "liquidada")
@@ -84,14 +83,12 @@
                  :message "Aposta liquidada como vencedora."
                  :retorno retorno}))
 
-            ;; Match is completed but the bet lost
             (and (:completed resultado) (not= winning-team outcome))
             (do
               (swap! apostas update id-aposta assoc :status "liquidada")
               {:status "sucesso"
                :message "Aposta liquidada como perdedora."})
 
-            ;; Match not completed or invalid result
             :else
             {:status "erro"
              :message "Resultado inválido ou aposta não completada."}))))))
