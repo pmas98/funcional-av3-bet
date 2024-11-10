@@ -43,12 +43,21 @@
   (get @apostas id-aposta))
 
 (defn obter-resultado [id-aposta sport]
-  (let [url (str "https://api.the-odds-api.com/v4/sports/" sport "/scores/?apiKey=083e159eb384001b00ba52c8fd8f4513&eventIds=" id-aposta)
+  (let [url (str "https://api.the-odds-api.com/v4/sports/" sport "/scores/?apiKey=083e159eb384001b00ba52c8fd8f4513&daysFrom=1&eventIds=" id-aposta)
         response (client/get url {:as :json})]
     (println url)
     (if (= 200 (:status response))
       (first (:body response))
       {:status (:status response) :error "Erro ao obter resultados"})))
+
+(defn determine-winner [resultado]
+  (let [{home-name :home_team away-name :away_team scores :scores} resultado
+        home-score (Integer/parseInt (get (some #(when (= (:name %) home-name) %) scores) :score "0"))
+        away-score (Integer/parseInt (get (some #(when (= (:name %) away-name) %) scores) :score "0"))]
+    (cond
+      (> home-score away-score) :home
+      (< home-score away-score) :away
+      :else nil))) ;; nil for draw
 
 (defn liquidar-aposta [id-aposta]
   (let [aposta (get @apostas id-aposta)]
@@ -60,30 +69,29 @@
          :message "Aposta já está liquidada."}
         (let [sport (:sport aposta)
               resultado (obter-resultado id-aposta sport)
-              winning-team (cond
-                             (= (:home_team resultado) (:outcome aposta)) :home
-                             (= (:away_team resultado) (:outcome aposta)) :away
-                             :else nil)]
+              winning-team (determine-winner resultado)
+              outcome (:outcome aposta)]
 
-          (if (and true
-                   (or (= (:home_team resultado) (:outcome aposta))
-                       (= (:away_team resultado) (:outcome aposta))))
+          (cond
+            ;; Check if outcome matches the winning team
+            (= winning-team outcome)
             (do
               (swap! apostas update id-aposta assoc :status "liquidada")
               (let [{:keys [valor multiplier]} aposta
                     retorno (* valor multiplier)]
                 (swap! contas update :saldo + retorno)
                 {:status "sucesso"
-                 :message "Aposta liquidada com sucesso."
+                 :message "Aposta liquidada como vencedora."
                  :retorno retorno}))
-            (if (and (:completed resultado)
-                     (not (or (= (:home_team resultado) (:outcome aposta))
-                              (= (:away_team resultado) (:outcome aposta)))))
-              (do
-                (swap! apostas update id-aposta assoc :status "liquidada")
-                {:status "sucesso"
-                 :message "Aposta liquidada como perdedora."})
-              {:status "erro"
-               :message "Resultado inválido ou aposta não completada."})))))))
 
+            ;; Match is completed but the bet lost
+            (and (:completed resultado) (not= winning-team outcome))
+            (do
+              (swap! apostas update id-aposta assoc :status "liquidada")
+              {:status "sucesso"
+               :message "Aposta liquidada como perdedora."})
 
+            ;; Match not completed or invalid result
+            :else
+            {:status "erro"
+             :message "Resultado inválido ou aposta não completada."}))))))
