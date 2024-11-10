@@ -43,7 +43,7 @@
   (get @apostas id-aposta))
 
 (defn obter-resultado [id-aposta sport]
-  (let [url (str "https://api.the-odds-api.com/v4/sports/" sport "/scores/?apiKey=083e159eb384001b00ba52c8fd8f4513&daysFrom=1&eventIds=" id-aposta)
+  (let [url (str "https://api.the-odds-api.com/v4/sports/" sport "/scores/?apiKey=083e159eb384001b00ba52c8fd8f4513&daysFrom=2&eventIds=" id-aposta)
         response (client/get url {:as :json})]
     (println url)
     (if (= 200 (:status response))
@@ -51,12 +51,15 @@
       {:status (:status response) :error "Erro ao obter resultados"})))
 
 (defn determine-winner [resultado]
-  (let [{home-name :home_team away-name :away_team scores :scores} resultado
-        home-score (Integer/parseInt (get (some #(when (= (:name %) home-name) %) scores) :score "0"))
-        away-score (Integer/parseInt (get (some #(when (= (:name %) away-name) %) scores) :score "0"))]
+  (let [{home-name :home_team
+         away-name :away_team
+         scores :scores} resultado
+        home-score (Integer/parseInt (str (get (some #(when (= (:name %) home-name) %) scores) :score "0")))
+        away-score (Integer/parseInt (str (get (some #(when (= (:name %) away-name) %) scores) :score "0")))]
+
     (cond
-      (> home-score away-score) :home
-      (< home-score away-score) :away
+      (> home-score away-score) home-name
+      (< home-score away-score) away-name
       :else nil)))
 
 (defn liquidar-aposta [id-aposta]
