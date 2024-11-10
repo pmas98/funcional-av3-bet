@@ -7,9 +7,6 @@
 (defn obter-saldo []
   {:saldo (:saldo @contas)})
 
-(defn atualizar-saldo [contas novo-saldo]
-  (assoc contas :saldo novo-saldo))
-
 (defn depositar [valor]
   (swap! contas update :saldo + valor)
   (obter-saldo))
@@ -100,8 +97,7 @@
             resultado (obter-resultado id-aposta sport "083e159eb384001b00ba52c8fd8f4513")
             total-threshold (parse-total-threshold outcome)
             total-score (calculate-total-score resultado)]
-        (println resultado)
-        (println "Total-threshold:" total-threshold)
+
         (case market
           "h2h" (if (= (determine-winner resultado) outcome)
                   (process-winning-bet id-aposta valor multiplier)

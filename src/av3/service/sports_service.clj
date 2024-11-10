@@ -22,16 +22,19 @@
         {:status 500
          :body {:error "Failed to fetch sports data"}}))))
 
+(defn filter-sports-events [events]
+  (->> events
+       (filter (fn [event]
+                 (let [sport-key (some-> event :group clojure.string/lower-case)]
+                   (contains? #{"soccer" "basketball"} sport-key))))))
+
 (defn buscar-mercados []
   (try
     (let [response (fetch-sports-data)
           status (:status response)
           events (:body response)]
       (if (= 200 status)
-        (let [filtered-events (->> events
-                                   (filter (fn [event]
-                                             (let [sport-key (some-> event :group clojure.string/lower-case)]
-                                               (contains? #{"soccer" "basketball"} sport-key)))))]
+        (let [filtered-events (filter-sports-events events)]
           {:status 200
            :body (or filtered-events [])})
         {:status status
@@ -40,6 +43,7 @@
       (log/error e "Error fetching events")
       {:status 500
        :body {:error (str "Internal error: " (.getMessage e))}})))
+
 
 (defn fetch-event-data [market]
   (let [url (str "https://api.the-odds-api.com/v4/sports/" market "/odds")]

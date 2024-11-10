@@ -57,10 +57,11 @@
 
   (POST "/saldo" {:keys [body]}
     (let [valor (:valor body)]
-      {:status 200
-       :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
-                 "Access-Control-Allow-Credentials" "true"}
-       :body (json/generate-string (db/depositar (Integer. valor)))}))
+      (if (and valor (>= (Integer. valor) 0))
+        {:status 200
+         :body (json/generate-string (db/depositar (Integer. valor)))}
+        {:status 400
+         :body (json/generate-string {:error "Deposit amount must be 0 or greater."})})))
 
   (POST "/apostas/registrar" {:keys [body]}
     (let [{:keys [id bookmaker market outcome multiplier valor sport]} body]
@@ -82,7 +83,7 @@
   (POST "/apostas/liquidar" {:keys [body]}
     (let [id-aposta (:id-aposta body)]
       {:status 200
-            :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
+       :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
                  "Access-Control-Allow-Credentials" "true"}
        :body (json/generate-string (db/liquidar-aposta id-aposta))}))
 
