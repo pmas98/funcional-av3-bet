@@ -29,11 +29,6 @@
 (defroutes app-routes
   (OPTIONS "/*" [] (options-handler nil))
 
-  (GET "/health" []
-    {:status 200
-     :body {:status "ok"
-            :api_key_present (not (nil? sports/api-key))}})
-
   (GET "/eventos" request
     (let [market (get (:params request) "market")]
       (log/info "Market value:" market)
