@@ -54,7 +54,6 @@
       (Integer/parseInt (str score)) 
       0)))                           
 
-
 (defn determine-winner [resultado]
   (let [{:keys [home_team away_team scores]} resultado
         home-score (parse-score scores home_team)
@@ -62,7 +61,7 @@
     (cond
       (> home-score away-score) home_team
       (< home-score away-score) away_team
-      :else nil)))
+      :else "Draw"))) 
 
 (defn parse-total-threshold [outcome]
   (let [[_ type threshold] (re-find #"(?i)(Over|Under) (\d+(\.\d+)?)" outcome)]
@@ -76,7 +75,6 @@
     (println "Home Team Score:" home-score "Away Team Score:" away-score)
     (+ home-score away-score)))
 
-
 (defn process-winning-bet [id-aposta valor multiplier]
   (let [retorno (* valor multiplier)]
     (swap! apostas update id-aposta assoc :status "liquidada")
@@ -87,29 +85,42 @@
   (swap! apostas update id-aposta assoc :status "liquidada")
   {:status "sucesso" :message "Aposta liquidada como perdedora."})
 
+(defn is-match-completed? [resultado]
+  (:completed resultado)) ; Checks if `completed` key is true
+
 (defn liquidar-aposta [id-aposta]
   (let [aposta (get @apostas id-aposta)]
     (cond
-      (nil? aposta) {:status "erro" :message "Aposta não encontrada."}
-      (= "liquidada" (:status aposta)) {:status "erro" :message "Aposta já está liquidada."}
+      (nil? aposta) 
+      {:status "erro" :message "Aposta não encontrada."}
+      
+      (= "liquidada" (:status aposta)) 
+      {:status "erro" :message "Aposta já está liquidada."}
+      
       :else
       (let [{:keys [sport outcome market valor multiplier]} aposta
-            resultado (obter-resultado id-aposta sport "083e159eb384001b00ba52c8fd8f4513")
-            total-threshold (parse-total-threshold outcome)
-            total-score (calculate-total-score resultado)]
+            resultado (obter-resultado id-aposta sport "083e159eb384001b00ba52c8fd8f4513")]
+        
+        (if-not (is-match-completed? resultado)
+          {:status "erro" 
+           :message "A partida ainda não foi finalizada. Não é possível liquidar a aposta."}
+          
+          (case market
+            "h2h" (let [winner (determine-winner resultado)]
+                    (if (= winner outcome)
+                      (process-winning-bet id-aposta valor multiplier) 
+                      (process-losing-bet id-aposta)))
 
-        (case market
-          "h2h" (if (= (determine-winner resultado) outcome)
-                  (process-winning-bet id-aposta valor multiplier)
-                  (process-losing-bet id-aposta))
+            "totals" (let [total-threshold (parse-total-threshold outcome)]
+                      (if-let [{:keys [type threshold]} total-threshold]
+                        (let [total-score (calculate-total-score resultado)
+                              won? (case type
+                                    "Over" (> total-score threshold)
+                                    "Under" (< total-score threshold)
+                                    false)]
+                          (if won? 
+                            (process-winning-bet id-aposta valor multiplier)
+                            (process-losing-bet id-aposta)))
+                        {:status "erro" :message "Threshold inválido para aposta de totals."}))
 
-          "totals" (if-let [{:keys [type threshold]} total-threshold]
-                     (let [won? (case type
-                                  "Over" (> total-score threshold)
-                                  "Under" (< total-score threshold)
-                                  false)]
-                       (if won? (process-winning-bet id-aposta valor multiplier)
-                           (process-losing-bet id-aposta)))
-                     {:status "erro" :message "Threshold inválido para aposta de totals."})
-
-          {:status "erro" :message "Tipo de mercado não suportado."})))))
+            {:status "erro" :message "Tipo de mercado não suportado."}))))))
