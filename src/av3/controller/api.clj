@@ -31,7 +31,6 @@
 
   (GET "/eventos" request
     (let [market (get (:params request) "market")]
-      (log/info "Market value:" market)
       (if market
         (let [{:keys [status body]} (sports/buscar-eventos market)]
           (log/info "Received events for market:" market)
