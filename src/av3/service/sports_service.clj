@@ -48,7 +48,7 @@
       (http/get url
                 {:query-params {"apiKey" "083e159eb384001b00ba52c8fd8f4513"
                                 "regions" "us"
-                                "markets" "h2h,totals"} ; Use a comma-separated string
+                                "markets" "h2h,totals"} 
                  :as :json
                  :throw-exceptions false})
       (catch Exception e
