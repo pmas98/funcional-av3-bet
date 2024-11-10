@@ -33,7 +33,6 @@
     (let [market (get (:params request) "market")]
       (if market
         (let [{:keys [status body]} (sports/buscar-eventos market)]
-          (log/info "Received events for market:" market)
           {:status status
            :body (if (= status 200)
                    body
