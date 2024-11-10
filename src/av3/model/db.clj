@@ -4,7 +4,6 @@
 (def contas (atom {:saldo 0}))
 (def apostas (atom {}))
 
-;; Account-related functions
 (defn obter-saldo []
   {:saldo (:saldo @contas)})
 
@@ -15,7 +14,6 @@
   (swap! contas update :saldo + valor)
   (obter-saldo))
 
-;; Bet-related functions
 (defn validar-nova-aposta [id-aposta valor saldo]
   (cond
     (<= valor 0) {:status "erro" :message "O valor da aposta deve ser maior que zero."}
