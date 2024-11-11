@@ -86,7 +86,7 @@
   {:status "sucesso" :message "Aposta liquidada como perdedora."})
 
 (defn is-match-completed? [resultado]
-  (:completed resultado)) ; Checks if `completed` key is true
+  (:completed resultado)) 
 
 (defn liquidar-aposta [id-aposta]
   (let [aposta (get @apostas id-aposta)]

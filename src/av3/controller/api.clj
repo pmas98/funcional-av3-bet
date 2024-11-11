@@ -43,16 +43,12 @@
   (GET "/mercados" []
     (let [{:keys [status body]} (sports/buscar-mercados)]
       {:status status
-       :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
-                 "Access-Control-Allow-Credentials" "true"}
        :body (if (= status 200)
                body
                {:error body})}))
 
   (GET "/saldo" []
     {:status 200
-     :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
-               "Access-Control-Allow-Credentials" "true"}
      :body (json/generate-string (db/obter-saldo))})
 
   (POST "/saldo" {:keys [body]}
@@ -83,8 +79,6 @@
   (POST "/apostas/liquidar" {:keys [body]}
     (let [id-aposta (:id-aposta body)]
       {:status 200
-       :headers {"Access-Control-Allow-Origin" "http://127.0.0.1:3000"
-                 "Access-Control-Allow-Credentials" "true"}
        :body (json/generate-string (db/liquidar-aposta id-aposta))}))
 
   (route/not-found "Not Found"))

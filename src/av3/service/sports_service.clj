@@ -3,17 +3,12 @@
             [clojure.tools.logging :as log]
             [environ.core :refer [env]]))
 
-(def api-key
-  (let [key (env :API_KEY)]
-    (log/info "Loaded API key:" (if key "Found" "Not found"))
-    key))
-
 (defn fetch-sports-data []
   (let [url "https://api.the-odds-api.com/v4/sports"]
     (try
       (http/get url
                 {:query-params {"apiKey" "083e159eb384001b00ba52c8fd8f4513"
-                                "regions" ["us" "br"]
+                                "regions" "us,br"
                                 "markets" "h2h"}
                  :as :json
                  :throw-exceptions false})
@@ -68,7 +63,7 @@
           events (:body response)]
       (if (= 200 status)
         {:status 200
-         :body (or events [])}  ; Directly return the events
+         :body (or events [])}  
         {:status status
          :body {:error (str "API Error: " status)}}))
     (catch Exception e
